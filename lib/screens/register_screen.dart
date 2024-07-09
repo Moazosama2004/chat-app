@@ -1,137 +1,161 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 
 import '../constants.dart';
+import '../helper/show_snack_bar.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_textfield.dart';
+import 'chat_screen.dart';
 
-class RegisterScreen extends StatelessWidget {
+class RegisterScreen extends StatefulWidget {
   RegisterScreen({Key? key}) : super(key: key);
 
+  static String id = 'RegisterScreen';
+
+  @override
+  State<RegisterScreen> createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
+  bool isLoading = false;
+
   String? email;
+
   String? password;
 
-  static String id = 'RegisterScreen';
+  GlobalKey<FormState> formKey = GlobalKey();
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: kPrimaryColor,
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: Column(
-          children: [
-            Spacer(
-              flex: 2,
-            ),
-            Image.asset(
-              'assets/images/scholar.png',
-            ),
-            Text(
-              'Scholar Chat',
-              style: TextStyle(
-                  fontSize: 32, fontFamily: 'Pacifico', color: Colors.white),
-            ),
-            Spacer(
-              flex: 2,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
+    return ModalProgressHUD(
+      inAsyncCall: isLoading,
+      child: Scaffold(
+        backgroundColor: kPrimaryColor,
+        body: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: Form(
+            key: formKey,
+            child: Column(
               children: [
-                Text(
-                  'REGISTER',
-                  style: TextStyle(fontSize: 24, color: Colors.white),
+                Spacer(
+                  flex: 2,
                 ),
-              ],
-            ),
-            SizedBox(
-              height: 15,
-            ),
-            CustomTextField(
-              onChange: (data) {
-                print(data);
-                email = data;
-              },
-              hintText: 'Email',
-            ),
-            SizedBox(
-              height: 10,
-            ),
-            CustomTextField(
-              onChange: (data) {
-                print(data);
-                password = data;
-              },
-              hintText: 'Password',
-            ),
-            SizedBox(
-              height: 20,
-            ),
-            CustomButton(
-              text: 'Register',
-              ontap: () async {
-                try {
-                  final user = await FirebaseAuth.instance
-                      .createUserWithEmailAndPassword(
-                    email: email!,
-                    password: password!,
-                  );
-                } on FirebaseAuthException catch (e) {
-                  if (e.code == 'weak-password') {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('The password provided is too weak.'),
-                      ),
-                    );
-                    print('The password provided is too weak.');
-                  } else if (e.code == 'email-already-in-use') {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('The account already exists for that email.'),
-                      ),
-                    );
-                    print('The account already exists for that email.');
-                  }
-                } catch (e) {
-                  print(e);
-                }
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('success'),
-                  ),
-                );
-              },
-            ),
-            SizedBox(
-              height: 15,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
+                Image.asset(
+                  kLogo,
+                ),
                 Text(
-                  'already have an account ?',
-                  style: TextStyle(color: Colors.white),
+                  'Scholar Chat',
+                  style: TextStyle(
+                      fontSize: 32, fontFamily: 'Pacifico', color: Colors.white),
+                ),
+                Spacer(
+                  flex: 2,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text(
+                      'REGISTER',
+                      style: TextStyle(fontSize: 24, color: Colors.white),
+                    ),
+                  ],
                 ),
                 SizedBox(
-                  width: 10.0,
+                  height: 15,
                 ),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.pop(context);
+                CustomTextField(
+                  onChange: (data) {
+                    print(data);
+                    email = data;
                   },
-                  child: Text(
-                    'Login',
-                    style: TextStyle(color: Color(0xffb2d3c8)),
-                  ),
+                  hintText: 'Email',
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                CustomTextField(
+                  onChange: (data) {
+                    print(data);
+                    password = data;
+                  },
+                  hintText: 'Password',
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+                CustomButton(
+                  text: 'Register',
+                  ontap: () async {
+                    if (formKey.currentState!.validate()) {
+                      try {
+                        isLoading = true;
+                        setState(() {
+
+                        });
+                        await registerUser();
+                        showSnackBar(context, message: 'Success');
+                        Navigator.pushNamed(context, ChatScreen.id);
+                      } on FirebaseAuthException catch (e) {
+                        if (e.code == 'weak-password') {
+                          showSnackBar(context,
+                              message: 'The password provided is too weak.');
+                        } else if (e.code == 'email-already-in-use') {
+                          showSnackBar(context,
+                              message: 'The account already exists for that email.');
+                        }
+                      } catch (e) {
+                        showSnackBar(context, message: 'There was an error');
+                      }
+                      isLoading = false;
+                      setState(() {
+
+                      });
+                    }
+                  },
+                ),
+                SizedBox(
+                  height: 15,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'already have an account ?',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    SizedBox(
+                      width: 10.0,
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context);
+                      },
+                      child: Text(
+                        'Login',
+                        style: TextStyle(color: Color(0xffb2d3c8)),
+                      ),
+                    ),
+                  ],
+                ),
+                Spacer(
+                  flex: 3,
                 ),
               ],
             ),
-            Spacer(
-              flex: 3,
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
+
+  Future<void> registerUser() async {
+    final user = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      email: email!,
+      password: password!,
+    );
+  }
 }
+
+
