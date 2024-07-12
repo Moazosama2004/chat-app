@@ -74,6 +74,7 @@ class LoginScreen extends StatelessWidget {
                   height: 10,
                 ),
                 CustomTextField(
+                  obscureText: true,
                   onChange: (data){
                     password = data;
                   },
@@ -88,7 +89,7 @@ class LoginScreen extends StatelessWidget {
                     try {
                       await loginUser();
                       showSnackBar(context , message: 'Success',);
-                      Navigator.pushNamed(context, ChatScreen.id);
+                      Navigator.pushNamed(context, ChatScreen.id , arguments: email);
                     } on FirebaseAuthException catch (e) {
                       if (e.code == 'user-not-found') {
                         showSnackBar(context , message: 'No user found for that email.',);

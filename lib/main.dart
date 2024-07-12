@@ -27,7 +27,7 @@ class ChatApp extends StatelessWidget {
 
       },
       debugShowCheckedModeBanner: false,
-      initialRoute: ChatScreen.id,
+      initialRoute: LoginScreen.id,
     );
   }
 }
